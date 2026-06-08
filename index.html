@@ -33,6 +33,11 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 80px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--bg);
+    padding: 16px 0;
   }
   nav.top .logo {
     font-weight: 700;
@@ -266,7 +271,7 @@
   /* sticky timeline strip */
   .story-timeline-wrap {
     position: sticky;
-    top: 0;
+    top: 56px;
     z-index: 5;
     margin: 0 -56px 56px;
     padding: 14px 56px 14px;
@@ -323,14 +328,16 @@
     aspect-ratio: 4 / 5;
     align-self: start;
   }
-  .story-stage image-slot {
+  .story-stage .story-photo {
     position: absolute; inset: 0;
     width: 100%; height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
     opacity: 0;
     transition: opacity .55s cubic-bezier(.2,.7,.2,1);
     pointer-events: none;
   }
-  .story-stage image-slot.is-active { opacity: 1; pointer-events: auto; }
+  .story-stage .story-photo.is-active { opacity: 1; }
   /* tiny step badge in the corner of the stage */
   .story-stage .stage-badge {
     position: absolute; left: 14px; bottom: 14px; z-index: 2;
@@ -373,13 +380,24 @@
   .story-chapter p {
     font-size: 15px; line-height: 1.7; margin: 0; max-width: 440px;
   }
+  /* inline per-chapter image — desktop uses the sticky stage instead, so hide here */
+  .chapter-img { display: none; }
 
   @media (max-width: 900px) {
-    .story-scroll { grid-template-columns: 1fr; gap: 24px; }
-    .story-stage { position: static; width: 100%; aspect-ratio: 4 / 3; }
-    .story-chapter { min-height: auto; padding: 20px 0; opacity: 1; }
-    .story-timeline .tl-year { display: none; }
-    .story-timeline .tl-label { font-size: 10px; }
+    .story-scroll { grid-template-columns: 1fr; gap: 0; }
+    /* on phones/tablets the shared sticky stage + timeline don't work; each
+       chapter carries its own image and the page just scrolls normally */
+    .story-stage { display: none; }
+    .story-timeline-wrap { display: none; }
+    .story-chapter { min-height: auto; padding: 0 0 56px; opacity: 1; }
+    .chapter-img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
   }
 
   /* --- FUN --- */
@@ -734,6 +752,9 @@
   }
   @media (max-width: 780px) {
     .radar { grid-template-columns: 1fr; gap: 28px; }
+    .crease-feature { grid-template-columns: 1fr; gap: 28px; padding: 32px 26px; }
+    .crease-feature .crease-vis { max-width: 320px; margin: 0 auto; }
+    .app-grid { grid-template-columns: 1fr; }
   }
 
   /* building & writing — simple title + one-liner rows */
@@ -794,7 +815,7 @@
   @media (max-width: 600px) {
     /* 1. nav: shrink + allow wrap, keep on one comfortable row */
     .shell { padding: 24px 20px 64px; }
-    nav.top { margin-bottom: 48px; gap: 14px; }
+    nav.top { margin-bottom: 40px; gap: 14px; padding: 11px 0; }
     nav.top .logo { font-size: 16px; }
     nav.top ul { gap: 20px; }
     nav.top ul a { font-size: 16px; }
@@ -805,17 +826,32 @@
     .acc-meta { padding-left: 28px; }
     .acc-item.open .acc-body { max-height: 1200px; }
 
-    /* 4. splash names: tighter insets, smaller cap, no collision with crane */
-    .splash-name { font-size: clamp(48px, 16vw, 96px); }
-    .splash-name.top-left { top: 28px; left: 24px; }
-    .splash-name.bottom-right { bottom: 56px; right: 24px; }
-    .splash-name .tick { font-size: 9.5px; margin-bottom: 8px; }
+    /* story timeline: keep below sticky nav, compact to dots so it can't overflow */
+    .story-timeline-wrap { top: 46px; margin: 0 -20px 36px; padding: 12px 20px; }
+    .story-timeline { gap: 7px; }
+    .story-timeline .tl-label { display: none; }
+    .story-timeline .tl-line { margin-top: 0; }
+
+    /* crease pattern stacks (image above, text below) */
+    .crease-feature { padding: 26px 20px; gap: 22px; }
+    .crease-feature .crease-vis { max-width: 260px; }
+    .crease-feature h4 { font-size: 30px; }
+    .crease-feature p { max-width: none; }
+
+    /* 4. splash names: full-width + centered so nothing clips.
+       Scoped under .splash to outrank the base .top-left/.bottom-right
+       position rules that appear later in the source. */
+    .splash .splash-name { font-size: clamp(30px, 10.5vw, 62px); letter-spacing: -.03em; white-space: nowrap; text-align: center; left: 20px; right: 20px; transform: none; width: auto; }
+    .splash .splash-name.top-left { top: 24px; bottom: auto; }
+    .splash .splash-name.bottom-right { bottom: 40px; top: auto; }
+    .splash .splash-name.bottom-right .tick { text-align: center; }
+    .splash-name .tick { font-size: 8.5px; margin-bottom: 6px; }
   }
 
   /* --- HOME SPLASH --- */
   body.home-active footer.foot { display: none; }
   body.home-active { overflow: hidden; }
-  body.home-active .shell { padding-top: 28px; padding-bottom: 0; min-height: auto; }
+  body.home-active .shell { padding-top: 28px; padding-bottom: 0; min-height: auto; max-width: none; }
   body.home-active nav.top { margin-bottom: 24px; }
 
   .splash {
@@ -823,6 +859,7 @@
     width: 100%;
     height: calc(100vh - 88px);
     overflow: hidden;
+    touch-action: none;
     cursor: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2214%22 height=%2214%22><rect width=%2214%22 height=%2214%22 fill=%22%231a1a1a%22/></svg>') 7 7, default;
   }
   .splash * { cursor: inherit; }
@@ -1156,7 +1193,7 @@
         <div class="socials">
           <a href="https://www.linkedin.com/in/sashapas/" target="_blank" rel="noopener">LinkedIn</a>
           <a href="https://x.com/Sasha_Pasmanik" target="_blank" rel="noopener">X</a>
-          <a href="mailto:sashapas9@gmail.com">Email</a>
+          <a href="/cdn-cgi/l/email-protection#522133213a332233216b12353f333b3e7c313d3f">Email</a>
         </div>
       </div>
     </div>
@@ -1276,40 +1313,45 @@ UNDERGRADUATE STUDY</div>
 
     <div class="story-scroll">
       <div class="story-stage">
-        <image-slot id="story-photo-charlottesville" class="is-active" data-step="0" shape="rounded" radius="6" fit="cover" position="50% 50%" placeholder="Charlottesville photo" src="assets/charlottesville-rotunda.avif"></image-slot>
-        <image-slot id="story-photo-telaviv" data-step="1" shape="rounded" radius="6" fit="cover" position="72% 70%" placeholder="Tel Aviv photo" src="assets/telaviv.jpeg"></image-slot>
-        <image-slot id="story-photo-milan" data-step="2" shape="rounded" radius="6" fit="cover" position="50% 50%" placeholder="Milan photo" src="assets/milan-duomo.jpeg"></image-slot>
-        <image-slot id="story-photo-boston" data-step="3" shape="rounded" radius="6" fit="cover" position="50% 60%" placeholder="Boston photo" src="assets/boston.jpeg"></image-slot>
-        <image-slot id="story-photo-paloalto" data-step="4" shape="rounded" radius="6" fit="cover" position="50% 50%" placeholder="Palo Alto / SF photo" src="assets/sf-paloalto.jpeg"></image-slot>
+        <img class="story-photo is-active" data-step="0" src="assets/charlottesville-rotunda.avif" alt="University of Virginia Rotunda at sunset" style="object-position:50% 50%;">
+        <img class="story-photo" data-step="1" src="assets/telaviv.jpeg" alt="Tel Aviv" style="object-position:72% 70%;">
+        <img class="story-photo" data-step="2" src="assets/milan-duomo.jpeg" alt="Milan Duomo at night" style="object-position:50% 50%;">
+        <img class="story-photo" data-step="3" src="assets/boston.jpeg" alt="Boston" style="object-position:50% 60%;">
+        <img class="story-photo" data-step="4" src="assets/sf-paloalto.jpeg" alt="San Francisco street view" style="object-position:50% 50%;">
         <div class="stage-badge" id="story-stage-badge">01 / 05</div>
       </div>
 
       <div class="story-chapters">
         <article class="story-chapter is-active" data-step="0">
+          <img class="chapter-img" src="assets/charlottesville-rotunda.avif" alt="University of Virginia Rotunda at sunset" style="object-position:50% 50%;">
           <div class="ch-num">01 / 05</div>
           <h2>Charlottesville</h2>
           <div class="ch-meta">STUDIED · 2021 — 2025</div>
           <p>Where I studied finance and computer science, was a local at Carter Mountain Orchard, and looked forward to every Sunday for our downtown soccer league.</p>
         </article>
         <article class="story-chapter" data-step="1">
+          <img class="chapter-img" src="assets/telaviv.jpeg" alt="Tel Aviv" style="object-position:72% 70%;">
           <div class="ch-num">02 / 05</div>
           <h2>Tel Aviv</h2>
           <div class="ch-meta">VENTURE CAPITAL · SUMMER 2023</div>
-          <p>Learned about the Israeli tech ecosystem, explored the Shuk's, and ate Shakshuka over 100 times. </p>
+          <p>Learned about the Israeli tech ecosystem, interviewed Adi Teeni, the GM of Meta Israel (very rewarding experience), and ate Shakshuka every day.</p>
         </article>
         <article class="story-chapter" data-step="2">
+          <img class="chapter-img" src="assets/milan-duomo.jpeg" alt="Milan Duomo at night" style="object-position:50% 50%;">
           <div class="ch-num">03 / 05</div>
           <h2>Milan</h2>
           <div class="ch-meta">BOCCONI UNIVERSITY · SPRING 2024</div>
           <p>Studied the intersection of finance and fashion on the weekdays. Traveled and romanticized life on the weekends. </p>
         </article>
         <article class="story-chapter" data-step="3">
+          <img class="chapter-img" src="assets/boston.jpeg" alt="Boston" style="object-position:50% 60%;">
           <div class="ch-num">04 / 05</div>
           <h2>Boston</h2>
           <div class="ch-meta">INTERNED · SUMMER 2024</div>
           <p>Analyzed late stage software companies, watched the Celtics parade, and played pickleball every night. </p>
         </article>
         <article class="story-chapter" data-step="4">
+          <img class="chapter-img" src="assets/sf-paloalto.jpeg" alt="San Francisco street view" style="object-position:50% 50%;">
           <div class="ch-num">05 / 05</div>
           <h2>San Francisco</h2>
           <div class="ch-meta">LIVING· 2025 — NOW</div>
@@ -1566,13 +1608,12 @@ UNDERGRADUATE STUDY</div>
     <div class="right">
       <a href="https://www.linkedin.com/in/sashapas/" target="_blank" rel="noopener">LinkedIn</a>
       <a href="https://x.com/Sasha_Pasmanik" target="_blank" rel="noopener">X</a>
-      <a href="mailto:sashapas9@gmail.com">Email</a>
+      <a href="/cdn-cgi/l/email-protection#bccfddcfd4ddccddcf85fcdbd1ddd5d092dfd3d1">Email</a>
     </div>
   </footer>
 </div>
 
-<script src="image-slot.js"></script>
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   const pages = document.querySelectorAll('.page');
   const navLinks = document.querySelectorAll('[data-link]');
 
@@ -1605,6 +1646,8 @@ UNDERGRADUATE STUDY</div>
     splash.addEventListener('click', e => {
       // ignore clicks on the splash-nav links (they handle themselves)
       if (e.target.closest('.splash-nav')) return;
+      // ignore the click that ends a crane drag (touch) — that was play, not navigation
+      if (window.__splashDragged) { window.__splashDragged = false; return; }
       history.pushState(null, '', '#about');
       showPage('about');
     });
@@ -1641,7 +1684,7 @@ UNDERGRADUATE STUDY</div>
   // Story page — sticky-scroll active state + timeline sync
   (function () {
     const chapters = Array.from(document.querySelectorAll('.story-chapter'));
-    const slots = document.querySelectorAll('.story-stage image-slot');
+    const slots = document.querySelectorAll('.story-stage .story-photo');
     const tlNodes = document.querySelectorAll('.story-timeline .tl-node');
     const stageBadge = document.getElementById('story-stage-badge');
     if (!chapters.length) return;
@@ -1930,23 +1973,37 @@ UNDERGRADUATE STUDY</div>
     requestAnimationFrame(loop);
 
     // Cursor follow for the splash crane — soft, lerped parallax.
-    const splash = document.querySelector('.splash-crane');
-    if (splash) {
+    const splashEl = document.querySelector('.splash');
+    const splashCrane = document.querySelector('.splash-crane');
+    if (splashEl && splashCrane) {
       let tx = 0, ty = 0, cx = 0, cy = 0;
-      const MAX_X = 260; // px range from center, horizontal
-      const MAX_Y = 180; // vertical
-      window.addEventListener('pointermove', (e) => {
+      function ranges() {
         const w = window.innerWidth, h = window.innerHeight;
-        const nx = (e.clientX / w) * 2 - 1; // -1..1
-        const ny = (e.clientY / h) * 2 - 1;
-        tx = nx * MAX_X;
-        ty = ny * MAX_Y;
-      });
+        return { mx: Math.min(260, w * 0.34), my: Math.min(180, h * 0.30), w, h };
+      }
+      function aim(clientX, clientY) {
+        const { mx, my, w, h } = ranges();
+        const nx = (clientX / w) * 2 - 1; // -1..1
+        const ny = (clientY / h) * 2 - 1;
+        tx = nx * mx;
+        ty = ny * my;
+      }
+      // Mouse hover (no button needed) + touch drag both feed the same aim().
+      window.addEventListener('pointermove', (e) => aim(e.clientX, e.clientY));
+      // Touch: track finger while down, and flag a drag so it doesn't navigate.
+      splashEl.addEventListener('touchstart', (e) => {
+        window.__splashDragged = false;
+        if (e.touches[0]) aim(e.touches[0].clientX, e.touches[0].clientY);
+      }, { passive: true });
+      splashEl.addEventListener('touchmove', (e) => {
+        if (e.touches[0]) { aim(e.touches[0].clientX, e.touches[0].clientY); window.__splashDragged = true; }
+      }, { passive: true });
       window.addEventListener('pointerleave', () => { tx = 0; ty = 0; });
+      splashEl.addEventListener('touchend', () => { tx = 0; ty = 0; }, { passive: true });
       function follow() {
         cx += (tx - cx) * 0.18;
         cy += (ty - cy) * 0.18;
-        splash.style.transform = `translate(calc(-50% + ${cx.toFixed(2)}px), calc(-50% + ${cy.toFixed(2)}px))`;
+        splashCrane.style.transform = `translate(calc(-50% + ${cx.toFixed(2)}px), calc(-50% + ${cy.toFixed(2)}px))`;
         requestAnimationFrame(follow);
       }
       follow();
